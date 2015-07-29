@@ -301,7 +301,7 @@ function ForestBuffs_GetBuffList()
 	end	
 
 	-- No buffs are missing. Simply output 'Missing: None'
-	if result == "Missing\n" then
+	if result == "Missing\n\n" then
 		result = result .. "None";
 	end
 	
