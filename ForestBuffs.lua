@@ -91,7 +91,7 @@ function ForestBuffs_GetBuffList()
 			end
 			-- Thorns
 			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Nature_Thorns") then 
-				hasMarkOfWild = true;
+				hasThorns = true;
 			end
 			-- Power Word: Fortitude | Prayer of Fortitude
 			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_WordFortitude") or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_PrayerOfFortitude") then 
