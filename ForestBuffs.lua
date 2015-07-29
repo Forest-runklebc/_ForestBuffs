@@ -6,19 +6,15 @@ GlobalResult = "";
 -- Displays informational message when UI is loaded
 function ForestBuffs_onload()
 	DEFAULT_CHAT_FRAME:AddMessage(	ForestBuffsVersion .. " loaded" ..
-									"\nTo run ForestBuffs type /fbuffs, /forestbuffs, or /fb", 1.0, 0.0, 1.0);
+                                        "\nTo run ForestBuffs type /fbuffs, /forestbuffs, or /fb", 1.0, 0.0, 1.0);
 end
 
 -- Runs when a slash command (/fbuffs or /forestbuffs) is issued in game
 function SlashCmdList.FORESTBUFFS(msg, editbox)
 	
 	GlobalResult = ForestBuffs_GetBuffList();
-	
 	ForestBuffs_Toggle();
 	
-	--DEFAULT_CHAT_FRAME:AddMessage(result);
-	
-	--GlobalResult = result;
 end
 
 function ForestBuffs_GetBuffList()
@@ -316,11 +312,6 @@ function ForestBuffs_Refresh()
 	
 end
 
-function ForestBuffs_ChgValue()
-
-	ForestBuffs_Refresh();
-	
-end
 -----------------------------------------
 -- Toggles the showing/hiding of the Menu
 -----------------------------------------
