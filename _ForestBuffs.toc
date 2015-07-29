@@ -1,0 +1,5 @@
+## Interface: 11200
+## Title: _ForestBuffs
+## Notes: ForestBuffs is designed to track long buff lists in Vanilla WoW.
+ForestBuffs.lua
+ForestBuffs.xml
