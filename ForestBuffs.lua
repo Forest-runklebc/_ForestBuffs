@@ -9,7 +9,7 @@ function ForestBuffs_onload()
                                         "\nTo run ForestBuffs type /fbuffs, /forestbuffs, or /fb", 1.0, 0.0, 1.0);
 end
 
--- Runs when a slash command (/fbuffs or /forestbuffs) is issued in game
+-- Runs when a slash command (/fbuffs, /forestbuffs, or /fb) is issued in game
 function SlashCmdList.FORESTBUFFS(msg, editbox)
 	
 	GlobalResult = ForestBuffs_GetBuffList();
