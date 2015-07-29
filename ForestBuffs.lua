@@ -3,13 +3,17 @@ SLASH_FORESTBUFFS1, SLASH_FORESTBUFFS2, SLASH_FORESTBUFFS3 = '/fbuffs', '/forest
 ForestBuffsVersion = "_ForestBuffs: Version(v1.0)";
 GlobalResult = "";
 
+-----------------------------------------
 -- Displays informational message when UI is loaded
+-----------------------------------------
 function ForestBuffs_onload()
 	DEFAULT_CHAT_FRAME:AddMessage(	ForestBuffsVersion .. " loaded" ..
                                         "\nTo run ForestBuffs type /fbuffs, /forestbuffs, or /fb", 1.0, 0.0, 1.0);
 end
 
+-----------------------------------------
 -- Runs when a slash command (/fbuffs, /forestbuffs, or /fb) is issued in game
+-----------------------------------------
 function SlashCmdList.FORESTBUFFS(msg, editbox)
 	GlobalResult = ForestBuffs_GetBuffList();
 	ForestBuffs_Toggle();
@@ -332,5 +336,3 @@ function ForestBuffs_options(msg)
          	ForestBuffs_Toggle();
     end
 end
-
-
