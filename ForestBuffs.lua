@@ -334,5 +334,5 @@ function ForestBuffs_options(msg)
         -- Show Config Menu
 	if (msg == "") then
          	ForestBuffs_Toggle();
-    end
+        end
 end
