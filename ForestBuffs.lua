@@ -11,12 +11,13 @@ end
 
 -- Runs when a slash command (/fbuffs, /forestbuffs, or /fb) is issued in game
 function SlashCmdList.FORESTBUFFS(msg, editbox)
-	
 	GlobalResult = ForestBuffs_GetBuffList();
 	ForestBuffs_Toggle();
-	
 end
 
+-----------------------------------------
+-- Main function, parses player buffs
+-----------------------------------------
 function ForestBuffs_GetBuffList()
 	-- Initialize string to be displayed
 	local result = "Missing:\n\n";
@@ -234,7 +235,6 @@ function ForestBuffs_GetBuffList()
         if not hasBlessingMight then
 		result = result .. "Blessing of Might\n";
 	end
-
 	if not hasBlessingLight then
 		result = result .. "Blessing of Light\n";
 	end
@@ -304,12 +304,12 @@ function ForestBuffs_GetBuffList()
 	return result;
 end
 
-
+-----------------------------------------
+-- Updates buff list
+-----------------------------------------
 function ForestBuffs_Refresh()
-
 	GlobalResult = ForestBuffs_GetBuffList();
 	ForestBuffs_Text_Status_BuffList:SetText(GlobalResult);
-	
 end
 
 -----------------------------------------
@@ -327,7 +327,6 @@ end
 -- Parse out option from / Command
 ----------------------------------
 function ForestBuffs_options(msg)
-
         -- Show Config Menu
 	if (msg == "") then
          	ForestBuffs_Toggle();
