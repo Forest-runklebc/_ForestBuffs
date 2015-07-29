@@ -235,6 +235,10 @@ function ForestBuffs_GetBuffList()
 	if not hasBlessingSalv then
 		result = result .. "Blessing of Salvation\n";
 	end
+        if not hasBlessingMight then
+		result = result .. "Blessing of Might\n";
+	end
+
 	if not hasBlessingLight then
 		result = result .. "Blessing of Light\n";
 	end
