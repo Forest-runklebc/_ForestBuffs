@@ -7,7 +7,7 @@ GlobalResult = "";
 -- Displays informational message when UI is loaded
 -----------------------------------------
 function ForestBuffs_onload()
-	DEFAULT_CHAT_FRAME:AddMessage(	ForestBuffsVersion .. " loaded" ..
+	DEFAULT_CHAT_FRAME:AddMessage(	"ForestBuffs loaded" ..
                                         "\nTo run ForestBuffs type /fbuffs, /forestbuffs, or /fb", 1.0, 0.0, 1.0);
 end
 
@@ -16,7 +16,7 @@ end
 -----------------------------------------
 function SlashCmdList.FORESTBUFFS(msg, editbox)
 	GlobalResult = ForestBuffs_GetBuffList();
-	ForestBuffs_Toggle();
+	DEFAULT_CHAT_FRAME:AddMessage("You are missing...\n" .. GlobalResult, 1.0, 1.0, 1.0);
 end
 
 -----------------------------------------
@@ -25,314 +25,356 @@ end
 function ForestBuffs_GetBuffList()
 	-- Initialize string to be displayed
 	local result = "Missing:\n\n";
+	local worldBuffsResult = "World Buffs: ";
+	local raidBuffsResult = "Raid Buffs: ";
+	local consumeBuffsResult = "Consumes: ";
+	local selfBuffsResult = "Self Buffs: ";
 	
-	-- Declare all buffs as missing until seen
-	local hasMageArmor = false;
-	local hasArcaneInt = false;
-	local hasMarkOfWild = false;
-	local hasThorns = false;
-	local hasPrayerFort = false;	
-	local hasDivineSpirit = false;
-	local hasShadowProtection = false;
-	local hasBlessingWis = false;
-	local hasBlessingSalv = false;
-	local hasBlessingMight = false;
-	local hasBlessingKings = false;
-	local hasBlessingLight = false;
-	local hasDetectInvis = false;
-	local hasUnderwaterBreath = false;
-	local hasGiantsElixir = false
-	local hasHolyProtPot = false;
-	local hasShadowProtPot = false;
-	local hasFireProtPot = false;
-	local hasFrostProtPot = false;
-	local hasNatureProtPot = false;
-	local hasGreaterArcaneProtPot = false;
-	local hasGreaterFireProtPot = false;
-	local hasInfallibleMind = false;
-	local hasDampenMagic = false;
-	local hasNightfinSoup = false;
-	local hasRallyingCry = false;
-	local hasSongflower = false;
-	local hasSlipkikSavvy = false;
-	local hasScrollOfProtection = false;
-	local hasScrollOfAgility = false;
-	local hasScrollOfStrength = false;
+	--All: Weapon Buff, Elixir of Fortitude, Well Fed, Rumsey Rum/Gordok Green Grog, 3x prot pot
+	hasMainHandEnchant, mainHandExpiration, mainHandCharges, hasOffHandEnchant, offHandExpiration, offHandCharges = GetWeaponEnchantInfo()
+	local hasElixirOfFortitutde = false; --INV_Potion_44
+	local hasWellFed = false; --spell_misc_food
+	local hasRum = false --inv_drink_03/inv_drink_04
+	--local hasFireProtPot = false; --Interface\\Icons\\Spell_Fire_FireArmor
+	--local hasNatureProtPot = false; --Interface\\Icons\\Spell_Nature_SpiritArmor
 	
-	--[[
+	--WBuffs: Rallying Cry, Spirit of Zandalar, Fengus's Ferocity, Mol'dar's Moxie, Slip'kik's Savvy, Songflower Serenade, Spirit of Zanza
+	local hasRallyingCry = false; --Interface\\Icons\\INV_Misc_Head_Dragon_01
+	local hasSpiritOfZandalar = false; --ability_creature_poison_05
+	local hasFengusFerocity = false; --spell_nature_undyingstrength
+	local hasMoldarsMoxie = false; --spell_nature_massteleport
+	local hasSlipkiksSavvy = false; --spell_holy_lesserheal02
+	local hasSongflower = false; --Interface\\Icons\\Spell_Holy_MindVision
+	local hasSpiritOfZanza = false; --inv_potion_30
 	
-	 Official buff names can be located by:
-	 	1) Going to http://www.wowhead.com
-		2) Searching for the in game spell/item you want to find
-		3) Go to spell/item sub-page
-		4) Clicking on the spell icon image(this will bring up a page that says something like Spell_Nature_Regeneration.png, this is the offical buff name - not accurate for all buffs)
+	--Raid Buffs: Fortitutde, Shadow Prot, Divine Spirit, Mark of the Wild, Kings, Might, Light, Wisdom, Sanctuary, Salv, Arcane Int
+	local hasPrayerFort = false; --Interface\\Icons\\Spell_Holy_WordFortitude
+	local hasDivineSpirit = false; --Interface\\Icons\\Spell_Holy_DivineSpirit
+	local hasShadowProtection = false; --Interface\\Icons\\Spell_Shadow_AntiShadow
+	local hasMarkOfWild = false; --Interface\\Icons\\Spell_Nature_Regeneration
+	local hasBlessingKings = false; --Interface\\Icons\\Spell_Magic_MageArmor
+	local hasBlessingMight = false; --Interface\\Icons\\Spell_Holy_FistOfJustice
+	local hasBlessingLight = false; --Interface\\Icons\\Spell_Holy_FistOfJustice
+	local hasBlessingWis = false; --Interface\\Icons\\Spell_Holy_SealOfWisdom
+	local hasBlessingSanc = false; --Interface\\Icons\\Spell_holy_greaterblessingofsanctuary
+	local hasBlessingSalv = false; -- Interface\\Icons\\Spell_Holy_SealOfSalvation
+	local hasArcaneInt = false;	-- Interface\\Icons\\Spell_Holy_MagicalSentry
 	
-	 Overview: Loop through all buffs on player (self) and check for existing buffs (Side note: can't track individual ranks of spells since the icons are the same)
-		1) 0 to 50 just because we should never have 50 buffs
-		2) Check if we have any buffs at all
-		3) Check if the buffs we are tracking are on player (self)
+	--Rogue: Elixir of the Mongoose, Juju Might, Juju Power, Trueshot Aura
+	local hasMongoose = false; --inv_potion_32
+	local hasJujuMight = false; --inv_misc_monsterscales_07
+	local hasJujuPower = false; --inv_misc_monsterscales_11
+	local hasTrueshotAura = false; --ability_trueshot
+	local hasFlaskTitans = false; --INV_Potion_62
 	
-	 UnitBuff explanation: UnitBuff takes as arguments (UnitBuff(playerToCheck, buffSlot), PathToOfficialBuffName)
-	 
-	--]]
-
-	for i=0,50 do 
+	--Warrior: Elixir of the Mongoose, Juju Might, Juju Power, Trueshot Aura
+	hasMongoose = false;
+	hasJujuMight = false;
+	hasJujuPower = false;
+	hasTrueshotAura = false;
+	
+	--Hunter: Elixir of the Mongoose, Juju Might, Trueshot Aura
+	hasMongoose = false;
+	hasJujuMight = false;
+	hasTrueshotAura = false;
+	
+	--Warlock: Greater Arcane Elixir, Elixir of Shadow Power, Flask of Surpreme Power, Demon Skin
+	local hasGreaterArcaneElixir = false; --inv_potion_25
+	local hasElixirOfShadowPower = false; --inv_potion_46
+	local hasFlaskOfSurpremePower = false; --inv_potion_41
+	local hasDemonSkin = false; --spell_shadow_ragingscream
+	local hasIntFood = false; --INV_Misc_Organ_03
+	
+	--Mage: Mage Armor/Ice Armor, Flask of Supreme Power, Greater Arcane Elixir, Flask of Surpreme Power
+	hasGreaterArcaneElixir = false;
+	hasFlaskOfSurpremePower = false;
+	local hasMageArmor = false; -- "Interface\\Icons\\Spell_MageArmor"
+	hasIntFood = false;
+	--Paladin: Nightfin Soup, Mageblood Potion
+	local hasNightfinSoup = false; --?
+	local hasMagebloodPotion = false; --inv_potion_45
+	local hasFlaskDistilledWisdom = false; --INV_Potion_97
+	
+	--Druid: Nightfin Soup, Mageblood Potion
+	hasNightfinSoup = false;
+	hasMagebloodPotion = false;
+	
+	--Priest Nightfin Soup, Mageblood Potion, Inner Fire
+	hasNightfinSoup = false;
+	hasMagebloodPotion = false;
+	local hasInnerFire = false; --spell_holy_innerfire	
+	
+	
+	for i=0,50 do -- Just looping 1 to 50 because you cant have 50 buffs
 		if UnitBuff("player", i) ~= nil then
-			-- Mage Armor
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_MageArmor") then
-				hasMageArmor = true;
+			-- ~~~~~~~~~~~~~~~ WORLD BUFFS ~~~~~~~~~~~~~~~
+		
+			-- Onyxia / Nefarian buff
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\INV_Misc_Head_Dragon_01") then
+				hasRallyingCry = true;
+				DEFAULT_CHAT_FRAME:AddMessage(hasRallyingCry);
 			end
-			-- Arcane Intellect | Arcane Brilliance
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_MagicalSentry")  or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_ArcaneIntellect") then
-				hasArcaneInt = true;
+			-- Hakkar heart buff
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\ability_creature_poison_05") then
+				hasSpiritOfZandalar = true;
+			end
+			-- DM tribute AP buff
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\spell_nature_undyingstrength") then
+				hasFengusFerocity = true;
+			end
+			-- DM tribute Stam buff
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\spell_nature_massteleport") then
+				hasMoldarsMoxie = true;
+			end
+			-- DM tribute spell crit buff
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\spell_holy_lesserheal02") then
+				hasSlipkiksSavvy = true;
+			end
+			-- Songflower felwood buff
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_MindVision") then
+				hasSongflower = true;
+			end
+		
+			
+			-- ~~~~~~~~~~~~~~~ RAID BUFFS ~~~~~~~~~~~~~~~
+			
+			-- Power Word: Fortitude | Prayer of Fortitude
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_WordFortitude") or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_PrayerOfFortitude") then 
+				hasPrayerFort = true;
+			end
+		
+			-- Shadow Protection | Prayer of Shadow Protection
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Shadow_AntiShadow") or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_PrayerofShadowProtection")then 
+				hasShadowProtection = true;
 			end
 			-- Mark of the Wild | Gift of the Wild
 			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Nature_Regeneration") then 
 				hasMarkOfWild = true;
 			end
-			-- Thorns
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Nature_Thorns") then 
-				hasThorns = true;
+			-- Blessing of Kings | Greater Blessing of Kings
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Magic_MageArmor") or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Magic_GreaterBlessingofKings")then 
+				hasBlessingKings = true;
 			end
-			-- Power Word: Fortitude | Prayer of Fortitude
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_WordFortitude") or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_PrayerOfFortitude") then 
-				hasPrayerFort = true;
-			end			
-			-- Divine Spirit | Prayer of Spirit
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_DivineSpirit") or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_PrayerofSpirit")then 
-				hasDivineSpirit = true;
+			-- Blessing of Might | Greater Blessing of Might
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_FistOfJustice") or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_GreaterBlessingofKings")then 
+				hasBlessingMight = true;
 			end
-			-- Shadow Protection | Prayer of Shadow Protection
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Shadow_AntiShadow") or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_PrayerofShadowProtection")then 
-				hasShadowProtection = true;
+			-- Blessing of Light | Greater Blessing of Light
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_PrayerOfHealing02") or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_GreaterBlessingofLight")then 
+				hasBlessingLight = true;
 			end
 			-- Blessing of Wisdom | Greater Blessing of Wisdom
 			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_SealOfWisdom") or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_GreaterBlessingofWisdom")then 
 				hasBlessingWis = true;
 			end
+			-- Greater Blessing of Sanctuary
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_holy_greaterblessingofsanctuary") then
+				hasBlessingSanc = true;
+			end
 			-- Blessing of Salvation | Greater Blessing of Salvation
 			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_SealOfSalvation") or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_GreaterBlessingofSalvation")then 
 				hasBlessingSalv = true;
 			end
-			-- Blessing of Might | Greater Blessing of Might
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_FistOfJustice") or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_GreaterBlessingofKings")then 
-				hasBlessingSalv = true;
+			-- Arcane Intellect | Arcane Brilliance
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_MagicalSentry")  or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_ArcaneIntellect") then
+				hasArcaneInt = true;
 			end
-			-- Blessing of Kings | Greater Blessing of Kings
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Magic_MageArmor") or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Magic_GreaterBlessingofKings")then 
-				hasBlessingKings = true;
+			-- Trueshot Aura
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\ability_trueshot") then
+				hasTrueshotAura = true;
 			end
-			-- Blessing of Light | Greater Blessing of Light
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_PrayerOfHealing02") or string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_GreaterBlessingofLight")then 
-				hasBlessingLight = true;
-			end	
-			-- Detect Lesser Invisibility
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Shadow_DetectLesserInvisibility") then 
-				hasDetectInvis = true;
+		
+			
+			-- ~~~~~~~~~~~~~~~ CONSUMABLES ~~~~~~~~~~~~~~~
+			
+			-- Elixir of Fortitude
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\INV_Potion_44") then
+				hasElixirOfFortitutde = true;
 			end
-			-- Underwater Breathing
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Shadow_DemonBreath") then 
-				hasUnderwaterBreath = true;
+			-- Well Fed
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\spell_misc_food") then
+				hasWellFed = true;
 			end
-			-- Elixir of the Giants
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\INV_Potion_61") then 
-				hasGiantsElixir = true;
+			-- Rum (stam)
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\inv_drink_03") or string.find(UnitBuff("player",i), "Interface\\Icons\\inv_drink_04") then
+				hasRum = true;
 			end
-			-- Holy Protection Potion
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_BlessingOfProtection") then 
-				hasHolyProtPot = true;
+			-- Spirit of Zanza Potion (stam/spirit)
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\inv_potion_30") then
+				hasSpiritOfZanza = true;
 			end
-			-- Shadow Protection Potion
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Shadow_Ragingscream") then 
-				hasShadowProtPot = true;
+			-- Mongoose
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\inv_potion_32") then
+				hasMongoose = true;
 			end
-			-- Fire Protection Potion
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Fire_FireArmor") then 
-				hasFireProtPot = true;
+			-- Juju Might (Green JuJu, raw AP)
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\inv_misc_monsterscales_07") then
+				hasJujuMight = true;
 			end
-			-- Frost Protection Potion
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Frost_FrostArmor02") then 
-				hasFireProtPot = true;
+			-- Juju Power (Black JuJu, srength)
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\inv_misc_monsterscales_11") then
+				hasJujuPower = true;
 			end
-			-- Nature Protection Potion
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Nature_SpiritArmor") then 
-				hasNatureProtPot = true;
+			-- Greater Arcane Elixir (raw spell dmg)
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\inv_potion_25") then
+				hasGreaterArcaneElixir = true;
 			end
-			-- Greater Arcane Protection Potion
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_PrayerOfHealing02") then 
-				hasGreaterArcaneProtPot = true;
+			-- Elixir of Shadow Power (shadow spell dmg)
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\inv_potion_46") then
+				hasElixirOfShadowPower = true;
 			end
-			-- Greater Fire Protection Potion
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Fire_FireArmor") then 
-				hasGreaterFirePot = true;
+			-- Flask of Surpeme Power (raw spell dmg)
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\inv_potion_41") then
+				hasFlaskOfSurpremePower = true;
 			end
-			-- Infallible Mind
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Ice_Lament") then 
-				hasInfallibleMind = true;
+			-- Flask of the Titans (HP)
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\inv_potion_62") then
+				hasFlaskTitans = true;
 			end
-			-- Dampen Magic
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Nature_AbolishMagic") then 
-				hasDampenMagic = true;
+			-- Flask of Distilled Wisdom (Mana)
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\inv_potion_97") then
+				hasFlaskDistilledWisdom = true;
 			end
 			-- Nightfin Soup
 			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Nature_ManaRegenTotem") then 
 				hasNightfinSoup = true;
 			end
-			-- Rallying Cry of the Dragonslayer
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\INV_Misc_Head_Dragon_01") then 
-				hasRallyingCry = true;
+			-- Mageblood Potion
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\inv_potion_45") then 
+				hasMagebloodPotion = true;
 			end
-			-- Songflower Serenade
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_MindVision") then 
-				hasSongflower = true;
+		
+			-- ~~~~~~~~~~~~~~~ SELF BUFFS ~~~~~~~~~~~~~~~
+			
+			-- Demon Skin (Warlock buff)
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\spell_shadow_ragingscream") then 
+				hasDemonSkin = true;
 			end
-			-- Slipkik's Savvy
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_LesserHeal02") then 
-				hasSlipkikSavvy = true;
+			-- Mage Armor (Mage buff)
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_MageArmor") then 
+				hasMageArmor = true;
 			end
-			-- Scroll of Protection
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Ability_Warrior_DefensiveStance") then 
-				hasScrollOfProtection = true;
-			end
-			-- Scroll of Agility
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Holy_BlessingOfAgility") then 
-				hasScrollOfAgility = true;
-			end
-			-- Scroll of Strength
-			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_Nature_Strength") then 
-				hasScrollOfStrength = true;
-			end
+			-- Inner Fire (Priest Buff)
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\spell_holy_innerfire") then 
+				hasInnerFire = true;
+			end	
+		
 		end
 	end
-	
-	-- For each buff missing, add it to the result to be displayed
-	if not hasMageArmor then
-		result = result .. "Mage Armor\n";
-	end
-	if not hasArcaneInt then
-		result = result .. "Arcane Intellect\n";
-	end
-	if not hasMarkOfWild then
-		result = result .. "Mark of the Wild\n";
-	end
-	if not hasThorns then
-		result = result .. "Thorns\n";
-	end
-	if not hasPrayerFort then
-		result = result .. "Power Word: Fortitude\n";
-	end
-	if not hasDivineSpirit then
-		result = result .. "Divine Spirit\n";
-	end
-	if not hasShadowProtection then
-		result = result .. "Shadow Protection\n";
-	end
-	if not hasBlessingWis then
-		result = result .. "Blessing of Wisdom\n";
-	end
-	if not hasBlessingKings then
-		result = result .. "Blessing of Kings\n";
-	end
-	if not hasBlessingSalv then
-		result = result .. "Blessing of Salvation\n";
-	end
-        if not hasBlessingMight then
-		result = result .. "Blessing of Might\n";
-	end
-	if not hasBlessingLight then
-		result = result .. "Blessing of Light\n";
-	end
-	if not hasDetectInvis then
-		result = result .. "Detect Lesser Invisibility\n";
-	end
-	if not hasUnderwaterBreath then
-		result = result .. "Underwater Breathing\n";
-	end
-	if not hasGiantsElixir then
-		result = result .. "Elixir of the Giants\n";
-	end
-	if not hasHolyProtPot then
-		result = result .. "Holy Protection Potion\n";
-	end
-	if not hasShadowProtPot then
-		result = result .. "Shadow Protection Potion\n";
-	end
-	if not hasFireProtPot then
-		result = result .. "Fire Protection Potion\n";
-	end
-	if not hasFrostProtPot then
-		result = result .. "Frost Protection Potion\n";
-	end
-	if not hasNatureProtPot then
-		result = result .. "Nature Protection Potion\n";
-	end
-	if not hasGreaterArcaneProtPot then
-		result = result .. "Greater Arcane Protection Potion\n";
-	end
-	if not hasGreaterFireProtPot then
-		result = result .. "Greater Fire Protection Potion\n";
-	end
-	if not hasInfallibleMind then
-		result = result .. "Infallible Mind\n";
-	end
-	if not hasDampenMagic then
-		result = result .. "Dampen Magic\n";
-	end
-	if not hasNightfinSoup then
-		result = result .. "Nightfin Soup\n";
-	end
+	-- ****************************** Begin to build result string ******************************
+			
+	-- ~~~~~~~~~~~~~~~ WORLD BUFFS ~~~~~~~~~~~~~~~
 	if not hasRallyingCry then
-		result = result .. "Rallying Cry of the Dragonslayer\n";
+		worldBuffsResult = worldBuffsResult .. "Ony, ";
+	end
+	if not hasSpiritOfZandalar then
+		worldBuffsResult = worldBuffsResult .. "ZG, ";
+	end
+	if not hasFengusFerocity then
+		worldBuffsResult = worldBuffsResult .. "DM AP, ";
+	end
+	if not hasMoldarsMoxie then
+		worldBuffsResult = worldBuffsResult .. "DM Stam, ";
+	end
+	if not hasSlipkiksSavvy then
+		worldBuffsResult = worldBuffsResult .. "DM Spell Crit, ";
 	end
 	if not hasSongflower then
-		result = result .. "Songflower Serenade\n";
-	end
-	if not hasSlipkikSavvy then
-		result = result .. "Slipkik\'s Savvy\n";
-	end
-	if not hasScrollOfProtection then
-		result = result .. "Scroll of Protection\n";
-	end
-	if not hasScrollOfAgility then
-		result = result .. "Scroll of Agility\n";
-	end
-	if not hasScrollOfStrength then
-		result = result .. "Scroll of Strength\n";
-	end	
-
-	-- No buffs are missing. Simply output 'Missing: None'
-	if result == "Missing\n\n" then
-		result = result .. "None";
+		worldBuffsResult = worldBuffsResult .. "Songflower, ";
 	end
 	
-	return result;
-end
-
------------------------------------------
--- Updates buff list
------------------------------------------
-function ForestBuffs_Refresh()
-	GlobalResult = ForestBuffs_GetBuffList();
-	ForestBuffs_Text_Status_BuffList:SetText(GlobalResult);
-end
-
------------------------------------------
--- Toggles the showing/hiding of the Menu
------------------------------------------
-function ForestBuffs_Toggle()
-	if ( ForestBuffs_Menu:IsVisible() ) then
-		ForestBuffs_Menu:Hide();
-	else
-		ForestBuffs_Menu:Show();
+	-- ~~~~~~~~~~~~~~~ RAID BUFFS ~~~~~~~~~~~~~~~
+	if not hasPrayerFort then
+		raidBuffsResult = raidBuffsResult .. "Fort, ";
 	end
-end
-
-----------------------------------
--- Parse out option from / Command
-----------------------------------
-function ForestBuffs_options(msg)
-        -- Show Config Menu
-	if (msg == "") then
-         	ForestBuffs_Toggle();
-        end
+	if not hasDivineSpirit then
+		raidBuffsResult = raidBuffsResult .. "Spirit, ";
+	end
+	if not hasShadowProtection then
+		raidBuffsResult = raidBuffsResult .. "Shadow Prot, ";
+	end
+	if not hasMarkOfWild then
+		raidBuffsResult = raidBuffsResult .. "Mark, ";
+	end
+	if not hasBlessingKings then
+		raidBuffsResult = raidBuffsResult .. "Kings, ";
+	end
+	if (not hasBlessingMight) and (UnitClass("player") == "Warrior" or UnitClass("player") == "Rogue") then
+		raidBuffsResult = raidBuffsResult .. "Might, ";
+	end
+	if not hasBlessingLight then
+		raidBuffsResult = raidBuffsResult .. "Light, ";
+	end
+	if (not hasBlessingWis) and (UnitClass("player") == "Hunter" or UnitClass("player") == "Druid" or UnitClass("player") == "Priest" or UnitClass("player") == "Paladin" or UnitClass("player") == "Warlock" or UnitClass("player") == "Mage") then
+		raidBuffsResult = raidBuffsResult .. "Wisdom, ";
+	end
+	if not hasBlessingSanc then
+		raidBuffsResult = raidBuffsResult .. "Sanc, ";
+	end
+	if not hasBlessingSalv then
+		raidBuffsResult = raidBuffsResult .. "Salv, ";
+	end
+	if (not hasArcaneInt) and (UnitClass("player") == "Hunter" or UnitClass("player") == "Druid" or UnitClass("player") == "Priest" or UnitClass("player") == "Paladin" or UnitClass("player") == "Warlock" or UnitClass("player") == "Mage") then
+		raidBuffsResult = raidBuffsResult .. "Int, ";
+	end
+	if (not hasTrueshotAura) and (UnitClass("player") == "Warrior" or UnitClass("player") == "Rogue" or UnitClass("player")=="Hunter") then
+		raidBuffsResult = raidBuffsResult .. "Trueshot, ";
+	end
+	
+	-- ~~~~~~~~~~~~~~~ CONSUMABLES ~~~~~~~~~~~~~~~
+	if not hasMainHandEnchant then
+		consumeBuffsResult = consumeBuffsResult .. "Weapon Enchant, ";
+	end
+	if not hasElixirOfFortitutde then
+		consumeBuffsResult = consumeBuffsResult .. "Elixir of Fort, ";
+	end
+	if (not hasWellFed) and (UnitClass("player") == "Warrior" or UnitClass("player") == "Rogue" or UnitClass("player")=="Hunter")then 
+		consumeBuffsResult = consumeBuffsResult .. "Food buff, ";
+	end
+	if not hasRum then
+		consumeBuffsResult = consumeBuffsResult .. "Rumsey Rum,  ";
+	end
+	if not hasSpiritOfZanza then
+		consumeBuffsResult = consumeBuffsResult .. "Zanza potion, ";
+	end
+	if (not hasMongoose) and (UnitClass("player") == "Warrior" or UnitClass("player") == "Rogue" or UnitClass("player")=="Hunter") then
+		consumeBuffsResult = consumeBuffsResult .. "Mongoose, ";
+	end
+	if (not hasJujuMight) and (UnitClass("player") == "Warrior" or UnitClass("player") == "Rogue" or UnitClass("player")=="Hunter") then
+		consumeBuffsResult = consumeBuffsResult .. "Black JuJu, ";
+	end
+	if (not hasJujuPower) and (UnitClass("player") == "Warrior" or UnitClass("player") == "Rogue") then
+		consumeBuffsResult = consumeBuffsResult .. "Green JuJu, ";
+	end
+	if (not hasGreaterArcaneElixir) and (UnitClass("player") == "Mage" or UnitClass("player") == "Warlock") then
+		consumeBuffsResult = consumeBuffsResult .. "Greater Arcane Elixir, ";
+	end
+	if (not hasElixirOfShadowPower) and (UnitClass("player") == "Warlock") then
+		consumeBuffsResult = consumeBuffsResult .. "Greater Arcane Elixir, ";
+	end
+	if (not hasFlaskOfSurpremePower) and (not hasFlaskTitans) and (not hasFlaskDistilledWisdom) then
+		consumeBuffsResult = consumeBuffsResult .. "Flask, ";
+	end
+	if (not hasNightfinSoup) and (UnitClass("player") == "Druid" or UnitClass("player") == "Priest" or UnitClass("player")=="Paladin") then
+		consumeBuffsResult = consumeBuffsResult .. "Nightfin, ";
+	end
+	if (not hasMagebloodPotion) and (UnitClass("player") == "Druid" or UnitClass("player") == "Priest" or UnitClass("player")=="Paladin") then
+		consumeBuffsResult = consumeBuffsResult .."Mageblood, ";
+	end
+	if (not hasIntFood) and (UnitClass("player")=="Mage" or UnitClass("player")=="Warlock") then
+		consumeBuffsResult = consumeBuffsResult .. "Int food, ";
+	end
+	
+	-- ~~~~~~~~~~~~~~~ SELF BUFFS ~~~~~~~~~~~~~~~
+	if (not hasDemonSkin) and (UnitClass("player")=="Warlock") then
+		selfBuffsResult = selfBuffsResult .. "Demon Skin"
+	end
+	if (not hasMageArmor) and (UnitClass("player")=="Mage") then
+		selfBuffsResult = selfBuffsResult .. "Mage Armor"
+	end
+	if (not hasInnerFire) and (UnitClass("player")=="Priest") then
+		selfBuffsResult = selfBuffsResult .. "Inner Fire"
+	end
+	
+	return  worldBuffsResult .. "\n" .. raidBuffsResult .. "\n" .. consumeBuffsResult .. "\n" .. selfBuffsResult;
 end
