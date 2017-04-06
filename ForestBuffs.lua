@@ -373,7 +373,7 @@ function ForestBuffs_GetBuffList()
 		selfBuffsResult = selfBuffsResult .. "Demon Skin"
 	end
 	if (not hasDemonicSac) and (UnitClass("player")=="Warlock") then
-		selfBuffsResult = selfBuffsResult .. "Demoic Sac"
+		selfBuffsResult = selfBuffsResult .. "Demonic Sac"
 	end
 	if (not hasMageArmor) and (UnitClass("player")=="Mage") then
 		selfBuffsResult = selfBuffsResult .. "Mage Armor"
