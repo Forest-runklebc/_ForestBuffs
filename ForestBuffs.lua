@@ -83,6 +83,7 @@ function ForestBuffs_GetBuffList()
 	local hasFlaskOfSurpremePower = false; --inv_potion_41
 	local hasDemonSkin = false; --spell_shadow_ragingscream
 	local hasIntFood = false; --INV_Misc_Organ_03
+	local hasDemonicSac = false --spell_shadow_psychicscream
 	
 	--Mage: Mage Armor/Ice Armor, Flask of Supreme Power, Greater Arcane Elixir, Flask of Surpreme Power
 	hasGreaterArcaneElixir = false;
@@ -249,6 +250,9 @@ function ForestBuffs_GetBuffList()
 			if string.find(UnitBuff("player",i), "Interface\\Icons\\spell_shadow_ragingscream") then 
 				hasDemonSkin = true;
 			end
+			if string.find(UnitBuff("player",i), "Interface\\Icons\\spell_shadow_psychicscream") then 
+				hasDemonicSac = true;
+			end
 			-- Mage Armor (Mage buff)
 			if string.find(UnitBuff("player",i), "Interface\\Icons\\Spell_MageArmor") then 
 				hasMageArmor = true;
@@ -367,6 +371,9 @@ function ForestBuffs_GetBuffList()
 	-- ~~~~~~~~~~~~~~~ SELF BUFFS ~~~~~~~~~~~~~~~
 	if (not hasDemonSkin) and (UnitClass("player")=="Warlock") then
 		selfBuffsResult = selfBuffsResult .. "Demon Skin"
+	end
+	if (not hasDemonicSac) and (UnitClass("player")=="Warlock") then
+		selfBuffsResult = selfBuffsResult .. "Demoic Sac"
 	end
 	if (not hasMageArmor) and (UnitClass("player")=="Mage") then
 		selfBuffsResult = selfBuffsResult .. "Mage Armor"
