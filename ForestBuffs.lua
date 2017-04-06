@@ -1,6 +1,5 @@
 -- Slash commands that can be used in game to run this addon
 SLASH_FORESTBUFFS1, SLASH_FORESTBUFFS2, SLASH_FORESTBUFFS3 = '/fbuffs', '/forestbuffs', '/fb';
-ForestBuffsVersion = "_ForestBuffs: Version(v1.0)";
 GlobalResult = "";
 
 -----------------------------------------
